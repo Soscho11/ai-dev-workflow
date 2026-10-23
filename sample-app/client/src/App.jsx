@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
+// In production on Vercel, this points to your Render backend URL.
+// In local development, it defaults to '' so Vite's proxy forwards to localhost:5000.
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +21,7 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/tasks');
+      const res = await fetch(`${API_BASE}/api/tasks`);
       if (!res.ok) {
         if (res.status === 500) {
           throw new Error('Backend server is not responding on port 5000. Did you start "npm run dev:server"?');
@@ -28,7 +32,7 @@ export default function App() {
       setTasks(data);
     } catch (err) {
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        setError('Network error: Vite proxy cannot reach backend. Ensure backend is running on port 5000.');
+        setError('Network error: Unable to reach backend. If hosted on Render Free tier, it may be waking up (takes ~30s). Please click Retry in a moment.');
       } else {
         setError(err.message);
       }
@@ -45,7 +49,7 @@ export default function App() {
     setError(null);
 
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await fetch(`${API_BASE}/api/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description })
@@ -68,7 +72,7 @@ export default function App() {
 
   async function handleToggleStatus(task) {
     try {
-      const res = await fetch(`/api/tasks/${task.id}`, {
+      const res = await fetch(`${API_BASE}/api/tasks/${task.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed: !task.completed })
@@ -85,7 +89,7 @@ export default function App() {
 
   async function handleDeleteTask(id) {
     try {
-      const res = await fetch(`/api/tasks/${id}`, {
+      const res = await fetch(`${API_BASE}/api/tasks/${id}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Failed to delete task');
